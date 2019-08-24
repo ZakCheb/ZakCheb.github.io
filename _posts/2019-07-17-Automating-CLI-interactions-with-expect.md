@@ -12,8 +12,8 @@ I decided today to automate my interaction with my home router, a DSL-2750U, I u
 #!/usr/bin/expect
 spawn telnet Router 
 # Show hosts of DSL-2750U home router.
-expect "Login: " { send "$1\r" }
-expect "Password: " { send "$2\r" }
+expect "Login: " { send "USERNAME\r" }
+expect "Password: " { send "PASSWORD\r" }
 expect "> " { send "lanhosts show all\r" }
 expect "> " { send "exit\r" }
 interact
