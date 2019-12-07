@@ -9,7 +9,7 @@ categories: jekyll update
 
 ![Wall](/asset/images/wall/Wall.png)
 
-Today Wall retired, its both my and Trump's favourite box, it envolves bypassing a WebAppFirewall to exploit a CVE in an open source network manager.
+Today Wall retired, its both my and Trump's favourite box, it involves bypassing a WebAppFirewall to exploit a CVE in an open source network manager.
 Its my first HTB writeup, not used to blogging, its an attempt on work on it.
 Lets hack the box:
 ```bash
@@ -17,7 +17,7 @@ echo "10.10.10.157	box" >> /etc/hosts
 ```
 
 ## Port Enumeration
-Lets start with a classic namp scan:
+Lets start with a classic nmap scan:
 ```bash
 Nmap 7.80 scan initiated Thu Nov 21 03:19:36 2019 as: nmap -sC -sV -oA box box
 Nmap scan report for box (10.10.10.157)
