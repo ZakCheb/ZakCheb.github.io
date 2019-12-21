@@ -103,10 +103,104 @@ result += (String.fromCharCode(flag[idx]));
 
 Initially, thinking brute-forcing the 40 digits might work with nesting multiple for loops, quickly realised that would take too much time and it's not an elegant solution.
 
-
 Then I recalled that flag format to submit to the website is : "247CTF{[0-9a-f]+}"
 With that knowledge, we could deduce the first 7 digits and the last one, maybe even deduce more if we replace them on the if test cases.
-So I went for replacing manually each one until I reached the 5~6 last unknnown characters where the brute-force idea would be manageable, annnd it did not work. Probably made a mistake/typo when replacing, tideous and boring, not taking the same path.
+So I went for replacing manually each one until I reached the 5~6 last unknown characters where the brute-force idea would be manageable.
+Here is a code snippet of the attempt:
+
+```javascript
+BFLock();
+function BFLock() {
+    let chars= "0123456789abcdef" // assume flag is hexa"
+    let flag = {};
+        // 2 for (let I1= 0,len=500; I1<=len ; I1++){
+        // 4 for (let I2= 0,len=500; I2<=len ; I2++){
+        // 7 for (let I3= 0,len=500; I3<=len ; I3++){
+        // C for (let I4= 0,len=500; I4<=len ; I4++){
+        // T for (let I5= 0,len=500; I5<=len ; I5++){
+        // F for (let I6= 0,len=500; I6<=len ; I6++){
+        // { for (let I7= 0,len=500; I7<=len ; I7++){
+                for (var I8 in chars){
+                for (var I9 in chars){
+                for (var I10 in chars){
+                for (var I11 in chars){
+                for (var I12 in chars){
+                for (var I13 in chars){
+                for (var I14 in chars){
+                for (var I15 in chars){
+                for (var I16 in chars){
+                for (var I17 in chars){
+                for (var I18 in chars){
+                for (var I19 in chars){
+                for (var I20 in chars){
+                for (var I21 in chars){
+                for (var I22 in chars){
+                for (var I23 in chars){
+                for (var I24 in chars){
+                for (var I25 in chars){
+                for (var I26 in chars){
+                for (var I27 in chars){
+                for (var I28 in chars){
+                for (var I29 in chars){
+                for (var I30 in chars){
+                for (var I31 in chars){
+                for (var I32 in chars){
+                for (var I33 in chars){
+                for (var I34 in chars){
+                for (var I35 in chars){
+                for (var I36 in chars){
+                for (var I37 in chars){
+                for (var I38 in chars){
+                for (var I39 in chars){
+        // } for (let I40= 0,len=500; I40<=len ; I40++){
+        
+
+    //For each combinaison 40 - 8 
+    //  2 4  7  C  T   F  {   }
+    // 50 52 55 67 84 70 123 125
+    let I1=50, I2=52 , I3=55 ,I4=67, I5=84,I6=70 ,I7=123,             I40=125;  
+    flag = {I1 ,I2 ,I3 ,I4 ,I5 ,I6 ,I7,I8 ,I9 ,I10 ,I11 ,I12 ,I13 ,I14 ,I15 ,I16 ,I17 ,I18 ,I19 ,I20 ,
+        I21 ,I22 ,I23 ,I24 ,I25 ,I26 ,I27 ,I28 ,I29 ,I30 ,I31 ,I32 ,I33 ,I34 ,I35 ,I36 ,I37 ,I38 ,I39 ,I40 };
+        // it kills performance console.log(flag);
+      if (checkFlag(flag)!= "LOCKED"){
+        console.log("FLAG!",flag)
+        return(flag)
+    }
+
+}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}  // }}}} }}}} // Nested loops end
+    
+}
+
+function  checkFlag(flag){
+    let result = "LOCKED";
+    if (
+    ((67 + flag[31]) ^ (flag[29] + flag[8]) == 234) && ((flag[32] - flag[12]) * flag[9] == -2332) && 
+    ((flag[24] - flag[27] + flag[13]) ^ 123 == 114) && ((flag[38] - flag[15]) * flag[33] == 800) && 
+    ((flag[34] - flag[21]) * flag[26] == 98) && ((flag[29] + 50) ^ (flag[8] + flag[38]) == 248) && 
+
+  	........................................
+ 	........................................
+ 	........................................
+
+    ((52 - flag[13]) * flag[38] == -112) && ((50 - flag[19] + flag[16]) ^ 50 == 80) &&  
+    ((flag[31] + flag[36]) ^ (67 + 55) == 227) && 
+    ((flag[32] - 67 + flag[26]) ^ 84 == 113) && ((67 * 123) ^ (flag[16] - flag[27]) == -8241) &&
+    ((flag[24] + flag[15]) ^ (55 + flag[30]) == 242) && ((flag[11] + flag[21]) ^ (flag[31] + flag[20]) == 12) &&
+    ((flag[9] - flag[26] + flag[23]) ^ flag[30] == 13)) 
+            {//EndBigIf
+	    result = "";
+      for (var idx in flag) {
+	    result += (String.fromCharCode(flag[idx]));
+	  }
+      
+    }
+
+    return result;
+  }
+```
+
+
+Annnd it did not work. Probably made a mistake/typo when replacing, tideous and boring, not taking the same path.
 
 After some research, I found a way better solution, let's think about problem here, we have 40 unknowns, each linked to one another with some contraints.
 

@@ -62,7 +62,7 @@ From there, was a bit lost tbh, tried to naturaly bruteforce the panel with hydr
 A bit CTFy but its fine, at least its not the whole box.
 From there we get a new URL, /centreon, its an open source centralised system to monoitor network infrastructure, and we faced its login API.
 ![Centreon Login](/asset/images/wall/Centreon_Login.png)
-Immediatly googled the version, and the first link is a CVE-2019-13024, where the author of the post is also the author of the box [@askar](https://twitter.com/mohammadaskar2), from there I knew I was going to the right direction, If you need more detail about the CVE, I invite you to visit his excellent [article](https://twitter.com/mohammadaskar2)  which detail the process of finding the vulnerability and exploit it.
+Immediatly googled the version, and the first link is a CVE-2019-13024, where the author of the post is also the author of the box [@askar](https://twitter.com/mohammadaskar2), from there I knew I was going to the right direction, If you need more detail about the CVE, I invite you to visit his excellent [article](https://shells.systems/centreon-v19-04-remote-code-execution-cve-2019-13024/) which detail the process of finding the vulnerability and exploit it.
 
 
 The Exploit requires to have the credentials, so after several attempts at manual fuzzing for the password field, we get admin:password1 and we are in.
