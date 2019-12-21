@@ -202,7 +202,7 @@ function  checkFlag(flag){
 
 Annnd it did not work. Probably made a mistake/typo when replacing, tideous and boring, not taking the same path.
 
-After some research, I found a way better solution, let's think about problem here, we have 40 unknowns, each linked to one another with some contraints.
+After some research, I found a way better solution, let's think about problem here, we have 40 unknowns, each linked to one another with some constraints.
 
 How are we supposed to get them? Using SAT solvers of course! Z3 is the likely condidate for the task.
 
