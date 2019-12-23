@@ -263,7 +263,7 @@ We are barely scratching the surface of Z3 here, it's so powerful and effective,
 May share more writeups on [247CTF](https://247CTF.com), check it out its a great platform.
 
 
-Managed to get 46th place amoung 1000+ players last november, that challenge was one of my favourites, it's nothing but proof of progress I guess!
+Managed to get 46th place among 1000+ players last november, that challenge was one of my favourites, it's nothing but proof of progress I guess!
 
 ![247CTF](/asset/images/SecretLock/247CTF_Rank.jpg)
 
