@@ -6,7 +6,7 @@ categories: jekyll update
 ---
 
 # Introduction
-I've done a long time ago the stack exercices of [Protostar](https://exploit-exercises.lains.space/protostar/), they have been setting for a while on my home folder, thought they might be usefull for someone, here are the solution for stack0-7, manually done before I discovered the joy of pwntools, uncommentend due to time constrains.
+I've done a long time ago the stack exercices of [Protostar](https://exploit-exercises.lains.space/protostar/), they have been sitting for a while on my home folder, thought they might be usefull for someone, here are the solution for stack0-7, manually done before I discovered the joy of pwntools, uncommentend due to time constrains.
 
 ```bash
 ####STACK1
