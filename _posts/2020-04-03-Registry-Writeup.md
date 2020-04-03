@@ -174,7 +174,7 @@ That cert file will probably be used to log in, after more googling, got two int
 1. [**Deploy a registry server**](https://docs.docker.com/registry/deploying/)
 2. [**Use self-signed certificates**]( https://docs.docker.com/registry/insecure/)
 
-Now we know the path of where to put it which is `/etc/docker/cert.d/docker.registry.htb` 
+Now we know the path of where to put it which is `/etc/docker/certs.d/docker.registry.htb` 
 
 ```bash
 root@Zakali:~# cat /etc/docker/certs.d/docker.registry.htb/ca.crt 
