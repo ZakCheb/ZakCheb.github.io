@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Registry Writeup"
+title: "[HTB] Registry Writeup"
 date: 2020-04-03
 categories: jekyll update
 ---

@@ -1,0 +1,14 @@
+I"@<p>I decided today to automate my interaction with my home router, a DSL-2750U, I usually use the web interface, but found out that a telnet management session is possible, of course, only accessible from the LAN, after some google search, I discovered this great program named <a href="https://linux.die.net/man/1/expect"><em>expect</em></a>, that automate interaction with any other CLI based programs.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/usr/bin/expect</span>
+spawn telnet Router 
+<span class="c"># Show hosts of DSL-2750U home router.</span>
+expect <span class="s2">"Login: "</span> <span class="o">{</span> send <span class="s2">"USERNAME</span><span class="se">\r</span><span class="s2">"</span> <span class="o">}</span>
+expect <span class="s2">"Password: "</span> <span class="o">{</span> send <span class="s2">"PASSWORD</span><span class="se">\r</span><span class="s2">"</span> <span class="o">}</span>
+expect <span class="s2">"&gt; "</span> <span class="o">{</span> send <span class="s2">"lanhosts show all</span><span class="se">\r</span><span class="s2">"</span> <span class="o">}</span>
+expect <span class="s2">"&gt; "</span> <span class="o">{</span> send <span class="s2">"exit</span><span class="se">\r</span><span class="s2">"</span> <span class="o">}</span>
+interact</code></pre></figure>
+
+<p>This simple script “expect” a value from the router, then push information, in our case the credentials and the command to execute.
+Now, I can simply parse the hosts with grep, and have a better overview of my network.</p>
+:ET

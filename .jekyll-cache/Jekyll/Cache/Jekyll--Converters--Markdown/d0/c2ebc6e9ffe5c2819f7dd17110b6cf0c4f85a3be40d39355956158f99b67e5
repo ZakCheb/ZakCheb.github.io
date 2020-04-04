@@ -1,0 +1,4 @@
+I"6<p>Unix creators set up a design philosophy based around simplicity : specific pieces of software should be built to do <strong>one thing</strong> and do that one thing <strong>well</strong>.
+I wanted to toy around ffmpeg and netcat on my free time, and came up with a train pipe that stream the output of the screen, compress it, and encrypt it with Rijndael cypher, its like AES but with 256bit block instead (Yes I’m extremely paranoid), and finally send it over the network with netcat.
+Each block will be explained separately then reassembled at the end.</p>
+:ET

@@ -1,0 +1,2 @@
+I"™<p>I decided today to automate my interaction with my home router, a DSL-2750U, I usually use the web interface, but found out that a telnet management session is possible, of course, only accessible from the LAN, after some google search, I discovered this great program named <a href="https://linux.die.net/man/1/expect"><em>expect</em></a>, that automate interaction with any other CLI based programs.</p>
+:ET

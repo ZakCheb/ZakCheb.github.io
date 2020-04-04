@@ -1,0 +1,39 @@
+I"�<p>Unix creators set up a design philosophy based around simplicity : specific pieces of software should be built to do <strong>one thing</strong> and do that one thing <strong>well</strong>.
+I wanted to toy around ffmpeg and netcat on my free time, and came up with a train pipe that stream the output of the screen, compress it, and encrypt it with Rijndael cypher, its like AES but with 256bit block instead (Yes I’m extremely paranoid), and finally send it over the network with netcat.
+Each block will be explained separately then reassembled at the end.</p>
+
+<p>1- The screen capture is performed with <strong>fmpeg</strong> and stream read with <strong>ffplay</strong>.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">ffmpeg <span class="nt">-video_size</span> 1366x768 <span class="nt">-framerate</span> 60 <span class="nt">-f</span> x11grab <span class="nt">-i</span> :0 <span class="nt">-f</span> avi - | ffplay -</code></pre></figure>
+
+<p>NB: The “<strong>-</strong>” symbol replace a file in general, and instead of I/O on a file, it does it on pipe.</p>
+
+<p>2- Compression is done with the classic gzip.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">echo</span> <span class="s2">"Compression and decompression with gzip"</span> | <span class="nb">gzip</span> | <span class="nb">gzip</span> <span class="nt">-d</span>  </code></pre></figure>
+
+<p>3- ccrypt is doing the encryption here.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">echo</span> <span class="s2">"Attack at dawn."</span> | ccrypt <span class="nt">-efK</span> ZakChebIsTheKey | ccrypt <span class="nt">-dfK</span> ZakChebIsTheKey</code></pre></figure>
+
+<iframe src="https://explainshell.com/explain?cmd=echo+%22Attack+at+dawn.%22+%7C+ccrypt+-efK+ZakChebIsTheKey+%7C+ccrypt+-dfK+ZakChebIsTheKey" width="110%" height="300px"></iframe>
+
+<p>NB: Of course, never use plain text keys on prod, just for demonstration purposes.</p>
+
+<p>4- netcat finally which just opens a socket connection.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">echo</span> <span class="s2">"Knock Knock"</span> | <span class="nb">sudo </span>nc <span class="nt">-lvvp</span> 8000 
+
+nc localhost 8000</code></pre></figure>
+
+<p>Thats how you capture video with ffmpeg and secure transfer over the network with just unix commands.</p>
+<h4 id="server">Server</h4>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>ffmpeg <span class="nt">-video_size</span> 1366x768 <span class="nt">-framerate</span> 60 <span class="nt">-f</span> x11grab <span class="nt">-i</span> :0 <span class="nt">-f</span> avi - <span class="se">\</span>
+| <span class="nb">gzip</span> | ccrypt <span class="nt">-vefK</span> ZakCheb | nc <span class="nt">-lvvp</span> 8000</code></pre></figure>
+
+<h4 id="client">Client</h4>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">nc localhost 8000 | ccrypt <span class="nt">-vdfK</span> ZakCheb | <span class="nb">gzip</span> <span class="nt">-d</span> | ffplay <span class="nt">-i</span> - </code></pre></figure>
+
+:ET

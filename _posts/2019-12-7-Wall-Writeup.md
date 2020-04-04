@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Wall Writeup"
+title: "[HTB] Wall Writeup"
 dat: 2019-07-15
 categories: jekyll update
 ---
