@@ -5,3 +5,4 @@ Using docker:
 ```bash
 ./Go.sh
 ```
+Visit localhost:800 
